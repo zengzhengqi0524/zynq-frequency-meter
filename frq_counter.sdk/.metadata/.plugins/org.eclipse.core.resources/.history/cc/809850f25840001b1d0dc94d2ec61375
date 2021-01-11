@@ -1,0 +1,80 @@
+#include <stdio.h>
+
+#include"xbasic_types.h"
+
+#include "sleep.h"
+
+#include "xparameters.h"
+
+#define FRE_AQC_BASE XPAR_FRE_AQC_0_S00_AXI_BASEADDR
+/*Bit1
+闸门信号Tpr（高时打开闸门）
+Bit0
+复位/清零信号clr（低有效）*/
+#define STD_CLK 100000000
+#define N_TEST_MIN 5
+int main()
+
+{
+
+char str[16]="";
+
+u32 fre_std,fre_test;
+
+double fre;
+
+printf("frequency test\n");
+
+while(1)
+
+{
+Xil_Out32(FRE_AQC_BASE,0);
+usleep(3000000);
+Xil_Out32(FRE_AQC_BASE,3);
+usleep(1000000);
+//fre_test =Xil_In32(FRE_AQC_BASE+8);
+//fre_std  =Xil_In32(FRE_AQC_BASE+4);
+//while(fre_test < N_TEST_MIN)
+//{
+//	fre_test =Xil_In32(FRE_AQC_BASE+8);
+//}
+////usleep(1000);
+Xil_Out32(FRE_AQC_BASE,1);// 关闭闸门不复位
+usleep(1000000);
+fre_test =Xil_In32(FRE_AQC_BASE+8);
+fre_std  =Xil_In32(FRE_AQC_BASE+4);
+
+fre =(double)fre_test*STD_CLK/(double)fre_std;
+
+fre_test = 0;
+fre_std = 0;
+Xil_Out32(FRE_AQC_BASE,0);
+
+
+if (fre<1000)
+{
+//	printf("f=%6.fHZ\n",fre);
+	sprintf(str, "%f",fre);
+	printf("f=%-7.7sHZ\n",str);
+}
+else if ((fre>=1000)&&(fre<1000000))
+{
+//	printf("f=%6.fKHZ\n",fre/1000);
+	sprintf(str, "%f",fre/1000);
+	printf("f=%-7.7sKHZ\n",str);
+}
+
+else if (fre>=1000000)
+{
+//	printf("f=%6.fMHZ\n",fre/1000000);
+	sprintf(str, "%f",fre/1000000);
+	printf("f=%-7.7sMHZ\n",str);
+}
+
+
+
+}
+
+    return 0;
+
+}
